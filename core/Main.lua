@@ -400,12 +400,29 @@ local function HandleSystemMessage(message)
     end
 
     local canonicalName = CanonicalizeName(joinedName)
-    if not canonicalName or canonicalName == GetPlayerCanonicalName() then
+    if not canonicalName then
+        -- Forever can announce a first name before the new roster arrives.
+        -- Resolve it only if the updated roster identifies one member.
+        local guildKey = state.guildKey
+        local generation = state.rosterGeneration
+        RefreshGuildRoster()
+        RunAfterDelay(2, function()
+            if state.rosterGeneration ~= generation or state.guildKey ~= guildKey then
+                return
+            end
+            local memberInfo = FindGuildMemberInfoByName(joinedName, true)
+            if memberInfo and state.rosterReady and not state.members[CanonicalizeName(memberInfo.fullName)] then
+                GreetNewMember(memberInfo)
+            end
+        end)
+        return
+    end
+    if canonicalName == GetPlayerCanonicalName() then
         return
     end
 
     state.pendingSystemJoins[canonicalName] = {
-        detectedAt = GetTime and GetTime() or 0,
+        detectedAt = GetTime(),
         joinedName = joinedName,
     }
     RefreshGuildRoster()
@@ -965,14 +982,20 @@ local function ScheduleGreeting(canonicalName, displayName, guildKey, profile, c
             end
         end
 
-        local message, poolLabel = PickGreetingMessage(language, profile)
-
-        profile.poolLabel = poolLabel or "unknown"
-        DebugPrintGreetingProfile(displayName, profile)
-        local formattedMessage = FormatGreetingMessage(message, displayName)
+        local formattedMessage
         if coordinated then
             local firstName = (UsesSurnames() and SplitCharacterName(fullName)) or displayName
-            formattedMessage = string.format("Welcome to %s, %s! Glad you’re here.", (GetGuildInfo("player")), firstName)
+            local guildName = GetGuildInfo("player")
+            if not guildName then
+                state.pendingGreetings[canonicalName] = nil
+                return
+            end
+            formattedMessage = string.format("Welcome to %s, %s! Glad you’re here.", guildName, firstName)
+        else
+            local message, poolLabel = PickGreetingMessage(language, profile)
+            profile.poolLabel = poolLabel or "unknown"
+            DebugPrintGreetingProfile(displayName, profile)
+            formattedMessage = FormatGreetingMessage(message, displayName)
         end
 
         local function SendGreeting()
