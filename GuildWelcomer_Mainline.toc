@@ -1,0 +1,11 @@
+## Interface: 120005
+## Title: GuildWelcomer
+## Notes: Greets new guild members with a random welcome message.
+## Author: acediarr
+## Version: 1.1.2
+## SavedVariables: GuildWelcomerDB
+## IconTexture: Interface\FriendsFrame\InformationIcon
+
+GuildWelcomer.lua
+data\Messages.lua
+core\Main.lua
