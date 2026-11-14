@@ -1,0 +1,2 @@
+# GuildWelcomer
+AI Created Addon
