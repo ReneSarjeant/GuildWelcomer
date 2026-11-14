@@ -1020,9 +1020,9 @@ local function ScheduleGreeting(canonicalName, displayName, guildKey, profile, c
             end
 
             if C_ChatInfo and C_ChatInfo.SendChatMessage then
-                C_ChatInfo.SendChatMessage(formattedMessage, "GUILD")
+                C_ChatInfo.SendChatMessage("[René] " .. formattedMessage, "GUILD")
             else
-                SendChatMessage(formattedMessage, "GUILD")
+                SendChatMessage("[René] " .. formattedMessage, "GUILD")
             end
         end
 
